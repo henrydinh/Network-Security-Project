@@ -1,0 +1,2 @@
+xterm -e "sudo mn --topo single,3 --mac --switch ovsk --controller remote -x" &
+./pox.py log.level --DEBUG misc.of_tutorial &
