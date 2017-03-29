@@ -17,7 +17,7 @@ while True:
 		break
 
 #TODO: Build RTP Layer
-rtpLayer = RTP()
+rtpLayer = RTP()/Raw()
 raw = packet[Raw].load
 
 currByte = ord(raw[0])
@@ -85,19 +85,16 @@ sync = hiByte1 + hiByte2 + loByte1 + loByte2
 rtpLayer.sync = sync
 
 #TODO: Rebuild packet with RTP layer
-etherLayer = packet.getlayer(Ether)
-ipLayer = packet.getlayer(IP)
-udpLayer = packet.getlayer(UDP)
 
 newRaw = ""
 
 for i in range(16, len(raw)):
         newRaw += raw[i]
 
-rtpLayer[Raw].payload = "".join(newRaw)
+rtpLayer[Raw].load = "".join(newRaw)
 
-newPacket = etherLayer / ipLayer / udpLayer / rtpLayer / rawLayer
+packet[Raw] = rtpLayer
 
 #TODO: send packet to injector
-print newPacket.show()
+print packet.show()
 
