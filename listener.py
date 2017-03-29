@@ -84,8 +84,19 @@ loByte1 = loByte1 << 8
 sync = hiByte1 + hiByte2 + loByte1 + loByte2
 rtpLayer.sync = sync
 
-print rtpLayer
-
 #TODO: Rebuild packet with RTP layer
+etherLayer = packet.getLayer(Ether)
+ipLayer = paclet.getLayer(IP)
+udpLayer = packet.getLayer(UDP)
+
+for i in range(0, len(raw)-16):
+        newRaw[i] = raw[i+16]
+
+rawLayer = Raw()
+rawLayer.payload = newRaw
+
+newPacket = etherLayer / ipLayer / udpLayer / rtpLayer / rawLayer
 
 #TODO: send packet to injector
+print newPacket.show()
+
