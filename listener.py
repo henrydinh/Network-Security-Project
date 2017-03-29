@@ -44,12 +44,47 @@ rtpLayer.marker = mark
 payloadType = currByte&127
 rtpLayer.payload = payloadType
 
-hiByte = raw[2]
-loByte = raw[3]
+hiByte = ord(raw[2])
+loByte = ord(raw[3])
 
 hiByte = hiByte << 8
 seq = hiByte + loByte
 rtpLayer.sequence = seq
+
+hiByte1 = ord(raw[4])
+hiByte2 = ord(raw[5])
+loByte1 = ord(raw[6])
+loByte2 = ord(raw[7])
+
+hiByte1 = hiByte1 << 24
+hiByte2 = hiByte2 << 16
+loByte1 = loByte1 << 8
+time = hiByte1 + hiByte2 + loByte1 + loByte2
+rtpLayer.timestamp = time
+
+hiByte1 = ord(raw[8])
+hiByte2 = ord(raw[9])
+loByte1 = ord(raw[10])
+loByte2 = ord(raw[11])
+
+hiByte1 = hiByte1 << 24
+hiByte2 = hiByte2 << 16
+loByte1 = loByte1 << 8
+ssrc = hiByte1 + hiByte2 + loByte1 + loByte2
+rtpLayer.sourcesync = ssrc
+
+hiByte1 = ord(raw[12])
+hiByte2 = ord(raw[13])
+loByte1 = ord(raw[14])
+loByte2 = ord(raw[15])
+
+hiByte1 = hiByte1 << 24
+hiByte2 = hiByte2 << 16
+loByte1 = loByte1 << 8
+sync = hiByte1 + hiByte2 + loByte1 + loByte2
+rtpLayer.sync = sync
+
+print rtpLayer
 
 #TODO: Rebuild packet with RTP layer
 
