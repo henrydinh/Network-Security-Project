@@ -85,15 +85,16 @@ sync = hiByte1 + hiByte2 + loByte1 + loByte2
 rtpLayer.sync = sync
 
 #TODO: Rebuild packet with RTP layer
-etherLayer = packet.getLayer(Ether)
-ipLayer = paclet.getLayer(IP)
-udpLayer = packet.getLayer(UDP)
+etherLayer = packet.getlayer(Ether)
+ipLayer = packet.getlayer(IP)
+udpLayer = packet.getlayer(UDP)
 
-for i in range(0, len(raw)-16):
-        newRaw[i] = raw[i+16]
+newRaw = ""
 
-rawLayer = Raw()
-rawLayer.payload = newRaw
+for i in range(16, len(raw)):
+        newRaw += raw[i]
+
+rtpLayer[Raw].payload = "".join(newRaw)
 
 newPacket = etherLayer / ipLayer / udpLayer / rtpLayer / rawLayer
 
