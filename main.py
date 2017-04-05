@@ -14,9 +14,12 @@ def listener():
         while True:
                 if (timer()*1000) >= start:
                         while True:
+                                global packetSem.acquire()
                                 packetList = sniff(filter="udp and len>1355", count=1, timeout=.200)
                                 if not packetList:
-                                        #End the program
+                                        global termSem.acquire()
+                                        global terminate = true
+                                        global termSem.release()
                                         return
                                 packet = packetList[0]
                                 if packet[UDP].len == 1336:
@@ -101,8 +104,9 @@ def listener():
 
                         packet[Raw] = rtpLayer
 
-                        #TODO: send packet to injector
-                        print packet.show()
+                        #Send packet to injector
+                        global passedPacket = packet
+                        global packetSem.release()
 
                         start = (timer()*1000) + 500
                         
@@ -125,7 +129,15 @@ def sendPacket(packet):
 	send(packet)
 	
 def injector(packet, new_sequence, new_timestamp):
-	None
+
+        while not global terminate:
+                #Attempt to acquire packet
+                #make sure packet has UDP layer
+                #If it does, copy it locally, overwrite the global to be just a tcp layer, and release the semaphore
+                #IF it doesn't, release the semaphore and go back to the beginning of the loop
+
+                #do stuff
+	return
 	
 
 listener = threading.Thread(target = listener)
@@ -134,7 +146,7 @@ injector = threading.Thread(target = injector)
 packetSem = BoundedSemaphore(value = 1)
 termSem = BoundedSemaphore(value = 1)
 
-packet = IP()
+passedPacket = TCP()
 terminate = False
 
 listener.run()
