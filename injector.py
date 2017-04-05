@@ -3,19 +3,36 @@
 from scapy.all import *
 import time
 
+
 # takes in a packet from the main thread and modifies its seq num and timestamp
 def modifyPacketHeader(packet, new_seq, new_ts):
 	packet.sequence = new_seq
 	packet.timestamp = new_ts
 
+	
 # replaces a packet's payload	
 def modifyPacketPayload(packet, new_payload):
 	packet[Raw].load = new_payload
+	
 
 # Sends the packet to the address. Timing is left up to the main thread
 def sendPacket(packet):
 	send(packet)
-
+	
+	
+def injector(packet, new_sequence, new_timestamp):
+	printLine = "===================="
+	print printLine
+	print "Beginning Inject Engine"
+	print printLine
+	
+	while True:
+		modifyPacketHeader(packet, packet.sequence, packet.timestamp)
+		modifyPacketPayload(packet, packet[Raw].load)
+		sendPacket(packet)
+		
+		
+# Used for testing purposes
 if __name__ == '__main__':
 	# create a dummy packet
 	rtp = RTP(payload_type=26, sequence=5, timestamp=17)
@@ -47,6 +64,6 @@ if __name__ == '__main__':
 	
 	print test_packet.getlayer(RTP).load
 	
-	while 1:
-		time.sleep(1)
-		sendPacket(test_packet)
+	#while 1:
+		#time.sleep(1)
+		#sendPacket(test_packet)
