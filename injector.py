@@ -10,7 +10,7 @@ def modifyPacketHeader(packet, new_seq, new_ts):
 
 # replaces a packet's payload	
 def modifyPacketPayload(packet, new_payload):
-	None
+	packet[Raw].load = new_payload
 
 # Sends the packet to the address. Timing is left up to the main thread
 def sendPacket(packet):
@@ -29,10 +29,18 @@ if __name__ == '__main__':
 	print test_packet.show()
 	print "\n\n\n"
 	
-	# modify the packet
+	# modify the packet's header
 	modifyPacketHeader(test_packet, 8, 21)
 	
 	print "Packet with modified header:"
+	print test_packet.summary()
+	print test_packet.show()
+	print "\n\n\n"
+	
+	# modify the packet's raw payload
+	modifyPacketPayload(test_packet, "This is a new payload.")
+	
+	print "Packet with modified raw payload:"
 	print test_packet.summary()
 	print test_packet.show()
 	print "\n\n\n"
