@@ -26,6 +26,8 @@ def listener():
 				if packet[UDP].len == 1336:
 					break
 
+			print "RTP packet captured"
+			
 			#TODO: Build RTP Layer
 			rtpLayer = RTP()/Raw()
 			raw = packet[Raw].load
@@ -108,7 +110,7 @@ def listener():
 			#Send packet to injector
 			global passedPacket = packet
 			global packetSem.release()
-			print "Captured RTP packet sent to injector."
+			print "Sending captured RTP packet to injector"
 			
 			start = (timer()*1000) + 500	
 	return
@@ -153,9 +155,11 @@ def injector():
 			
 			# send round of test packets every 20 ms for 500 ms. Roughly 25 packets
 			# update sequence number and timestamp accordingly
+			print "Beginning sending burst of 25 packets"
 			for i in range(0, 25):
 				modifyPacketHeader(packet, packet.sequence + 1, packet.timestamp + 20)
 				send(packet)
+				print "Sending packet %d" % i
 				time.sleep(.02)
 		else:
 			# if it doesn't, release the semaphore and go back to the beginning of the loop
