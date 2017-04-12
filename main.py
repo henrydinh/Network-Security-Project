@@ -5,6 +5,9 @@ import copy
 import time
 
 def listener():
+	# Global variables to be used
+	global passedPacket, packetSem, termSem, terminate
+	
 	printLine = "===================="
 	print printLine
 	print "Beginning Capture Engine"
@@ -15,11 +18,9 @@ def listener():
 	while True:
 		if (timer()*1000) >= start:
 			while True:
-				global packetSem
 				packetSem.acquire()
 				packetList = sniff(filter="udp and len>1355", count=1, timeout=.200)
 				if not packetList:
-					global termSem, terminate
 					termSem.acquire()
 					terminate = True
 					termSem.release()
@@ -110,7 +111,6 @@ def listener():
 			packet[Raw] = rtpLayer
 
 			#Send packet to injector
-			global passedPacket, packetSem
 			passedPacket = packet
 			packetSem.release()
 			print "Sending captured RTP packet to injector"
@@ -131,6 +131,9 @@ def modifyPacketPayload(packet, new_payload):
 	
 	
 def injector():
+	# global variables to be used
+	global packetSem, terminate, passedPacket
+
 	# Filler data to replace the packet's payload (20 bytes)
 	filler = "AAAAAAAAAAAAAAAAAAAA"
 	
@@ -139,17 +142,13 @@ def injector():
 	print "Beginning Injection Engine"
 	print printLine
 	
-	global terminate	
 	while not terminate:
 		# Attempt to acquire packet
-		global packetSem
 		packetSem.acquire()
 		
 		# make sure packet has UDP layer
 		# if it does, copy it locally, overwrite the global to be just a tcp layer, and release the semaphore
-		global passedPacket
 		if(passedPacket.hasLayer(UDP)):
-			global passedPacket
 			packet = copy.deepcopy(passedPacket)
 			passedPacket = TCP()
 			packetSem.release()
@@ -173,15 +172,14 @@ def injector():
 			packetSem.release()
 	return
 	
-
-listener = threading.Thread(target = listener)
-injector = threading.Thread(target = injector)
-
-packetSem = BoundedSemaphore(value = 1)
+packetSem = threading.BoundedSemaphore(value = 1)
 termSem = BoundedSemaphore(value = 1)
 
 passedPacket = TCP()
 terminate = False
+
+listener = threading.Thread(target = listener)
+injector = threading.Thread(target = injector)
 
 listener.run()
 injector.run()
@@ -189,4 +187,3 @@ injector.run()
 listener.join()
 injector.join()
 
-return
