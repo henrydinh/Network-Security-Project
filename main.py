@@ -2,7 +2,7 @@ import sys
 from scapy.all import *
 import threading
 import copy
-import time
+from timeit import default_timer as timer
 
 def listener():
 	# Global variables to be used
@@ -173,7 +173,7 @@ def injector():
 	return
 	
 packetSem = threading.BoundedSemaphore(value = 1)
-termSem = BoundedSemaphore(value = 1)
+termSem = threading.BoundedSemaphore(value = 1)
 
 passedPacket = TCP()
 terminate = False
