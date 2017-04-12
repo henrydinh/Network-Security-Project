@@ -3,6 +3,7 @@ from scapy.all import *
 import threading
 import copy
 from timeit import default_timer as timer
+import time
 
 def listener():
 	# Global variables to be used
@@ -181,8 +182,8 @@ terminate = False
 listener = threading.Thread(target = listener)
 injector = threading.Thread(target = injector)
 
-listener.run()
-injector.run()
+listener.start()
+injector.start()
 
 listener.join()
 injector.join()
