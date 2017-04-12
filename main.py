@@ -17,7 +17,6 @@ def listener():
 	start = timer()*1000
 
 	while True:
-		print "looping"
 		if (timer()*1000) >= start:
 			while True:
 				packetSem.acquire()
@@ -166,7 +165,7 @@ def injector():
 			# update sequence number and timestamp accordingly
 			print "Beginning sending burst of 25 packets"
 			for i in range(0, 25):
-				modifyPacketHeader(packet, packet.sequence + 1, packet.timestamp + 20)
+				modifyPacketHeader(packet, packet.sequence + 1, packet.timestamp + 160)
 				send(packet)
 				print "Sending packet %d" % i
 				time.sleep(.02)
