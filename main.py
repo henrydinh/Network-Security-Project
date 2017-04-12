@@ -17,6 +17,7 @@ def listener():
 	start = timer()*1000
 
 	while True:
+		print "looping"
 		if (timer()*1000) >= start:
 			while True:
 				packetSem.acquire()
@@ -25,6 +26,7 @@ def listener():
 					termSem.acquire()
 					terminate = True
 					termSem.release()
+					packetSem.release()
 					return
 				packet = packetList[0]
 				if packet[UDP].len == 1336:
@@ -149,7 +151,7 @@ def injector():
 		
 		# make sure packet has UDP layer
 		# if it does, copy it locally, overwrite the global to be just a tcp layer, and release the semaphore
-		if(passedPacket.hasLayer(UDP)):
+		if(passedPacket.haslayer(UDP)):
 			packet = copy.deepcopy(passedPacket)
 			passedPacket = TCP()
 			packetSem.release()
@@ -187,4 +189,3 @@ injector.start()
 
 listener.join()
 injector.join()
-
