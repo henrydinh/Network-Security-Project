@@ -151,19 +151,23 @@ def injector():
 			
 			# modify the packet payload
 			modifyPacketPayload(packet, filler)
-			modifyPacketHeader(packet, packet.sequence + 160, packet.timestamp + 160)
-
+			modifyPacketHeader(packet, packet.sequence + 163, packet.timestamp + 50367)
+			
 			# introduce 10 ms delay before beginning packet injection
 			#time.sleep(.01)
 			
 			# send round of test packets every 20 ms for 500 ms. Roughly 25 packets
 			# update sequence number and timestamp accordingly
 			print "Beginning sending burst of 25 packets"
+			fake_packets = []
 			for i in range(0, 25):
-				modifyPacketHeader(packet, packet.sequence + 2, packet.timestamp + 160)
-				sendp(packet)
+				modifyPacketHeader(packet, packet.sequence + 1, packet.timestamp + 309)
+				fake_packet = copy.deepcopy(packet)
+				fake_packets.append(fake_packet)
+				#sendp(packet)
 				print "Sending packet %d" % i
 				#time.sleep(.02)
+			sendp(fake_packets)
 		else:
 			# if it doesn't, release the semaphore and go back to the beginning of the loop
 			packetSem.release()
