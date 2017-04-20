@@ -159,7 +159,7 @@ def injector():
 			
 			# modify the packet payload
 			modifyPacketPayload(packet, filler)
-			modifyPacketHeader(packet, packet.sequence + 133, packet.timestamp + 19647)
+			modifyPacketHeader(packet, packet.sequence + 163, packet.timestamp + 19647)
 			fake_packets.append(packet)
 			
 			# send round of test packets every 20 ms for 500 ms. Roughly 25 packets
