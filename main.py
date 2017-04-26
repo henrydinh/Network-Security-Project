@@ -14,13 +14,16 @@ def listener():
 	print "Beginning Capture Engine"
 	print printLine
 
-	start = timer()*1000
+	storeList = True
 
+	packetSrc = ""
+
+	start = timer()*1000
 	while True:
 		if (timer()*1000) >= start:
 			while True:
 				packetSem.acquire()
-				packetList = sniff(filter="udp and len>1355", count=1, timeout=.200)
+				packetList = sniff(filter="udp and len>1355", count=200, timeout=1)
 				if not packetList:
 					termSem.acquire()
 					terminate = True
@@ -30,6 +33,9 @@ def listener():
 				packet = packetList[0]
 				if packet[UDP].len == 1336:
 					break
+
+			packetSrc = packet[IP].src
+			"""
 
 			print "RTP packet captured"
 			
@@ -108,13 +114,22 @@ def listener():
 			rtpLayer[Raw].load = newRaw
 
 			packet[Raw] = rtpLayer
-
+			"""
 			#Send packet to injector
-			passedPacket = packet
-			packetSem.release()
-			print "Sending captured RTP packet to injector"
-			
-			start = (timer()*1000) + 250
+			if(storeList):
+				passedPacket = packetList
+				
+				packetSem.release()
+
+				print "Sending captured RTP packet to injector"
+				
+				storeList = False
+				
+				start = (timer()*1000) + 500
+			else:
+				packetSem.release()
+
+			packetList = list()
 	return
 
 
@@ -147,31 +162,35 @@ def injector():
 	while not terminate:		
 		# make sure packet has UDP layer
 		# if it does, copy it locally, overwrite the global to be just a tcp layer, and release the semaphore
-		if(passedPacket.haslayer(UDP)):
+		if(passedPacket):
 			# Attempt to acquire packet
-			packetSem.acquire()
-			packet = copy.deepcopy(passedPacket)
-			passedPacket = TCP()
-			packetSem.release()
+			#packetSem.acquire()
+			#packet = copy.deepcopy(passedPacket)
+			#passedPacket = list()
+			#passedPacket.append(TCP())
+			#packetSem.release()
 			
 			# List of fake packets to send in a burst
-			fake_packets = []
+			#fake_packets = []
 			
 			# modify the packet payload
-			modifyPacketPayload(packet, filler)
-			modifyPacketHeader(packet, packet.sequence + 163, packet.timestamp + 19647)
-			fake_packets.append(packet)
+			#modifyPacketPayload(packet, filler)
+			#modifyPacketHeader(packet, packet.sequence + 163, packet.timestamp + 19647)
+			#fake_packets.append(packet)
 			
 			# send round of test packets every 20 ms for 500 ms. Roughly 25 packets
 			# update sequence number and timestamp accordingly
 			print "Beginning sending burst of 25 packets"
+			"""
 			for i in range(24):
 				modifyPacketHeader(packet, packet.sequence + 1, packet.timestamp + 309)
 				fake_packet = copy.deepcopy(packet)
 				deleteChecksums(fake_packet)
 				fake_packets.append(fake_packet)
 				print "Sending packet %d" % i
-			sendp(fake_packets)
+			"""
+			sendp(passedPacket)
+			time.sleep(1)
 	return
 
 	
@@ -183,7 +202,7 @@ for i in range(1298):
 packetSem = threading.BoundedSemaphore(value = 1)
 termSem = threading.BoundedSemaphore(value = 1)
 
-passedPacket = TCP()
+passedPacket = list()
 terminate = False
 
 listener = threading.Thread(target = listener)
