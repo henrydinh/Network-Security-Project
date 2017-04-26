@@ -7,7 +7,8 @@ import time
 
 def listener():
 	# Global variables to be used
-	global passedPacket, packetSem, termSem, terminate, filler
+	#global packetSem, termSem, 
+	global passedPacket, terminate, filler
 	
 	printLine = "===================="
 	print printLine
@@ -22,13 +23,13 @@ def listener():
 	while True:
 		if (timer()*1000) >= start:
 			while True:
-				packetSem.acquire()
-				packetList = sniff(filter="udp and len>1355", count=200, timeout=1)
+				#packetSem.acquire()
+				packetList = sniff(filter="udp and len>1355", count=25, timeout=1)
 				if not packetList:
-					termSem.acquire()
+					#termSem.acquire()
 					terminate = True
-					termSem.release()
-					packetSem.release()
+					#termSem.release()
+					#packetSem.release()
 					return
 				packet = packetList[0]
 				if packet[UDP].len == 1336:
@@ -117,18 +118,14 @@ def listener():
 			"""
 			#Send packet to injector
 			if(storeList):
-				passedPacket = packetList
-				
-				packetSem.release()
-
+				passedPacket = copy.deepcopy(packetList)
 				print "Sending captured RTP packet to injector"
 				
 				storeList = False
 				
 				start = (timer()*1000) + 500
-			else:
-				packetSem.release()
-
+				
+			#packetSem.release()
 			packetList = list()
 	return
 
@@ -152,7 +149,8 @@ def deleteChecksums(packet):
 	
 def injector():
 	# global variables to be used
-	global packetSem, terminate, passedPacket, filler
+	global terminate, passedPacket, filler
+	#global packetSem	
 		
 	printLine = "===================="
 	print printLine
@@ -180,7 +178,7 @@ def injector():
 			
 			# send round of test packets every 20 ms for 500 ms. Roughly 25 packets
 			# update sequence number and timestamp accordingly
-			print "Beginning sending burst of 25 packets"
+			print "Sending burst of packets"
 			"""
 			for i in range(24):
 				modifyPacketHeader(packet, packet.sequence + 1, packet.timestamp + 309)
@@ -199,8 +197,8 @@ filler = ""
 for i in range(1298):
 	filler += "A"
 	
-packetSem = threading.BoundedSemaphore(value = 1)
-termSem = threading.BoundedSemaphore(value = 1)
+#packetSem = threading.BoundedSemaphore(value = 1)
+#termSem = threading.BoundedSemaphore(value = 1)
 
 passedPacket = list()
 terminate = False
